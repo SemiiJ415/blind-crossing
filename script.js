@@ -1,20 +1,70 @@
-const board = document.getElementById("board");
 
+// 1. GAME STATE
 const size = 8;
 
-// Game state
-let currentPlayer = "p1";
-
-let player1 = { x: 0, y: 3 };
-let player2 = { x: 7, y: 3 };
-
-const directions = {
-  p1: 1,
-  p2: -1
+let gameState = {
+  currentPlayer: "p1",
+  players: {
+    p1: { x: 0, y: 3 },
+    p2: { x: 7, y: 3 }
+  },
+  bombs: [] 
 };
 
 
-function createBoard() {
+// 2. GAME ENGINE (RULES)
+
+
+function getCurrentPlayer() {
+  return gameState.players[gameState.currentPlayer];
+}
+
+function switchTurn() {
+  gameState.currentPlayer =
+    gameState.currentPlayer === "p1" ? "p2" : "p1";
+}
+
+// Movement rule
+function isValidMove(player, x, y) {
+  const dx = x - player.x;
+  const dy = y - player.y;
+
+  const isOneStep =
+    Math.abs(dx) <= 1 && Math.abs(dy) <= 1;
+
+  const notSameTile = !(dx === 0 && dy === 0);
+
+  // forward constraint (direction-based)
+  const forwardOnly =
+    (gameState.currentPlayer === "p1" && dx >= 0) ||
+    (gameState.currentPlayer === "p2" && dx <= 0);
+
+  return isOneStep && notSameTile && forwardOnly;
+}
+
+function movePlayer(x, y) {
+  const player = getCurrentPlayer();
+
+  if (!isValidMove(player, x, y)) return;
+
+  player.x = x;
+  player.y = y;
+
+  checkTileEffects(player);
+
+  switchTurn();
+  renderBoard();
+}
+
+//BOMBS
+function checkTileEffects(player) {
+  if (isBomb(player.x, player.y)) triggerBomb();
+}
+
+// 3. RENDER SYSTEM
+const board = document.getElementById("board");
+
+function renderBoard() {
   board.innerHTML = "";
 
   for (let y = 0; y < size; y++) {
@@ -25,17 +75,19 @@ function createBoard() {
       cell.dataset.x = x;
       cell.dataset.y = y;
 
-      // Click handler for movement
-      cell.addEventListener("click", handleMove);
+      cell.addEventListener("click", () => {
+        movePlayer(x, y);
+      });
 
-      // Player 1
-      if (x === player1.x && y === player1.y) {
+      const p1 = gameState.players.p1;
+      const p2 = gameState.players.p2;
+
+      if (x === p1.x && y === p1.y) {
         cell.classList.add("p1");
         cell.textContent = "P1";
       }
 
-      // Player 2
-      if (x === player2.x && y === player2.y) {
+      if (x === p2.x && y === p2.y) {
         cell.classList.add("p2");
         cell.textContent = "P2";
       }
@@ -45,44 +97,5 @@ function createBoard() {
   }
 }
 
-function handleMove(e) {
-  const x = parseInt(e.target.dataset.x);
-  const y = parseInt(e.target.dataset.y);
 
-  let player = currentPlayer === "p1" ? player1 : player2;
-
-  if (isValidMove(player, x, y)) {
-    player.x = x;
-    player.y = y;
-
-    switchTurn();
-    createBoard();
-  }
-}
-
-// Movement rules: 1 tile in any direction (no backward diagonals restriction.)
-function isValidMove(player, x, y) {
-  const dx = x - player.x;
-  const dy = y - player.y;
-
-  const forwardDir = currentPlayer === "p1" ? 1 : -1;
-
-  // must move at most 1 tile in any direction
-  const isOneStep = Math.abs(dx) <= 1 && Math.abs(dy) <= 1;
-
-  // prevent standing still
-  const notSameTile = !(dx === 0 && dy === 0);
-
-  // enforce forward movement OR lateral movement
-  const isForwardOrSide =
-    (currentPlayer === "p1" && dx >= 0) ||
-    (currentPlayer === "p2" && dx <= 0);
-
-  return isOneStep && notSameTile && isForwardOrSide;
-}
-
-function switchTurn() {
-  currentPlayer = currentPlayer === "p1" ? "p2" : "p1";
-}
-
-createBoard();
+renderBoard();
