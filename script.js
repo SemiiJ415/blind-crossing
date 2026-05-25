@@ -8,7 +8,7 @@ let gameState = {
     p1: { x: 0, y: 3 },
     p2: { x: 7, y: 3 }
   },
-  bombs: [] 
+  bombs: new Set()
 };
 
 
@@ -20,8 +20,19 @@ function getCurrentPlayer() {
 }
 
 function switchTurn() {
-  gameState.currentPlayer =
+  const nextPlayer =
     gameState.currentPlayer === "p1" ? "p2" : "p1";
+
+  gameState.currentPlayer = nextPlayer;
+
+  const player = gameState.players[nextPlayer];
+
+  // handle skip turn
+  if (player.skipNextTurn) {
+    player.skipNextTurn = false;
+    console.log(`${nextPlayer} skipped turn`);
+    switchTurn(); // skip again
+  }
 }
 
 // Movement rule
@@ -57,8 +68,59 @@ function movePlayer(x, y) {
 }
 
 //BOMBS
+function generateBombs(count = 10) {
+  gameState.bombs.clear();
+
+  while (gameState.bombs.size < count) {
+    const x = Math.floor(Math.random() * size);
+    const y = Math.floor(Math.random() * size);
+
+    // prevent starting positions
+    const isStartP1 = x === 0 && y === 3;
+    const isStartP2 = x === 7 && y === 3;
+
+    if (isStartP1 || isStartP2) continue;
+
+    gameState.bombs.add(`${x},${y}`);
+  }
+}
+function isBomb(x, y) {
+  return gameState.bombs.has(`${x},${y}`);
+}
+
 function checkTileEffects(player) {
-  if (isBomb(player.x, player.y)) triggerBomb();
+  const key = `${player.x},${player.y}`;
+
+  if (!gameState.bombs.has(key)) return;
+
+  // trigger bomb
+  console.log("💥 Bomb triggered at", key);
+
+  applyBombPenalty(player);
+}
+
+function applyBombPenalty(player) {
+  const roll = Math.random();
+
+  // 50/50 rotation system
+  if (roll < 0.5) {
+    // return to start
+    if (gameState.currentPlayer === "p1") {
+      player.x = 0;
+      player.y = 3;
+    } else {
+      player.x = 7;
+      player.y = 3;
+    }
+
+    console.log("↩️ Returned to start");
+  } else {
+    // lose next turn (simple version = skip turn immediately after switch)
+    console.log("⏭️ Lose next turn");
+
+    // mark skip flag
+    player.skipNextTurn = true;
+  }
 }
 
 // 3. RENDER SYSTEM
@@ -97,5 +159,5 @@ function renderBoard() {
   }
 }
 
-
+generateBombs();
 renderBoard();
