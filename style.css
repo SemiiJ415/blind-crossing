@@ -37,3 +37,19 @@ body {
   color: black;
   font-weight: bold;
 }
+
+#turn-indicator {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+#game-message {
+  min-height: 24px;
+  margin-bottom: 12px;
+}
+
+.finish-tile {
+  background: gold;
+  border: 2px solid white;
+}

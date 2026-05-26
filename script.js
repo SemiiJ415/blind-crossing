@@ -2,18 +2,24 @@
 // 1. GAME STATE
 const size = 8;
 
+let clearMessageNextTurn = false;
+
 let gameState = {
   currentPlayer: "p1",
   players: {
     p1: { x: 0, y: 3 },
     p2: { x: 7, y: 3 }
   },
-  bombs: new Set()
+  bombs: new Set(),
+  p1Goal: null,
+  p2Goal: null,
+  winner: null,
+  gameOver: false,
+  message: "",
+  clearMessageNextTurn: false
 };
 
-
 // 2. GAME ENGINE (RULES)
-
 
 function getCurrentPlayer() {
   return gameState.players[gameState.currentPlayer];
@@ -23,16 +29,20 @@ function switchTurn() {
   const nextPlayer =
     gameState.currentPlayer === "p1" ? "p2" : "p1";
 
-  gameState.currentPlayer = nextPlayer;
+    gameState.currentPlayer = nextPlayer;
 
-  const player = gameState.players[nextPlayer];
+    const player = gameState.players[nextPlayer];
 
-  // handle skip turn
-  if (player.skipNextTurn) {
-    player.skipNextTurn = false;
-    console.log(`${nextPlayer} skipped turn`);
-    switchTurn(); // skip again
+    // handle skip turn
+    if (player.skipNextTurn) {
+        player.skipNextTurn = false;
+        clearMessage();
+        console.log(`${nextPlayer} skipped turn`);
+        switchTurn(); // skip again
+        return;
   }
+
+  updateTurnIndicator();
 }
 
 // Movement rule
@@ -54,16 +64,53 @@ function isValidMove(player, x, y) {
 }
 
 function movePlayer(x, y) {
-  const player = getCurrentPlayer();
 
-  if (!isValidMove(player, x, y)) return;
+    if (gameState.gameOver) return;
 
-  player.x = x;
-  player.y = y;
+    const player = getCurrentPlayer();
 
-  checkTileEffects(player);
+    if (!isValidMove(player, x, y)) return;
 
-  switchTurn();
+    if (clearMessageNextTurn) {
+    clearMessage();
+  }
+
+    player.x = x;
+    player.y = y;
+
+    checkTileEffects(player);
+    checkWin(gameState.currentPlayer);
+    if (gameState.gameOver){
+      return;
+    }
+    switchTurn();
+    renderBoard();
+
+}
+
+function checkWin(playerKey) {
+  if (gameState.gameOver) return; //  prevent double triggers
+
+  const player = gameState.players[playerKey];
+
+  const goal =
+    playerKey === "p1"
+      ? gameState.p1Goal
+      : gameState.p2Goal;
+
+  const hasWon =
+    player.x === goal.x &&
+    player.y === goal.y;
+
+  if (!hasWon) return;
+
+  // lock game immediately
+  gameState.gameOver = true;
+  gameState.winner = playerKey;
+
+  // single win message ONLY
+  setMessage(`🏆 ${playerKey.toUpperCase()} wins!`, true);
+
   renderBoard();
 }
 
@@ -95,6 +142,7 @@ function checkTileEffects(player) {
 
   // trigger bomb
   console.log("💥 Bomb triggered at", key);
+  setMessage(`💥 Bomb! ${gameState.currentPlayer} triggered a bomb`)
 
   applyBombPenalty(player);
 }
@@ -113,9 +161,11 @@ function applyBombPenalty(player) {
       player.y = 3;
     }
 
+    setMessage(`💥 Bomb! ${gameState.currentPlayer} returns to start`, true);
     console.log("↩️ Returned to start");
   } else {
     // lose next turn (simple version = skip turn immediately after switch)
+    setMessage(`💥 Bomb! ${gameState.currentPlayer} loses next turn`, true);
     console.log("⏭️ Lose next turn");
 
     // mark skip flag
@@ -126,8 +176,21 @@ function applyBombPenalty(player) {
 // 3. RENDER SYSTEM
 const board = document.getElementById("board");
 
+const messageEl = document.getElementById("game-message");
+
+const turnEl = document.getElementById("turn-indicator")
+
 function renderBoard() {
   board.innerHTML = "";
+    gameState.p1Goal = {
+    x: 7,
+    y: gameState.players.p1.y
+    };
+
+    gameState.p2Goal = {
+    x: 0,
+    y: gameState.players.p2.y
+    };
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
@@ -144,20 +207,54 @@ function renderBoard() {
       const p1 = gameState.players.p1;
       const p2 = gameState.players.p2;
 
-      if (x === p1.x && y === p1.y) {
+        if (
+        x === gameState.p1Goal.x &&
+        y === gameState.p1Goal.y
+        ) {
+        cell.classList.add("finish-tile");
+        }
+
+        if (
+        x === gameState.p2Goal.x &&
+        y === gameState.p2Goal.y
+        ) {
+        cell.classList.add("finish-tile");
+        }   
+
+        if (x === p1.x && y === p1.y) {
         cell.classList.add("p1");
         cell.textContent = "P1";
-      }
+        }
 
-      if (x === p2.x && y === p2.y) {
+        if (x === p2.x && y === p2.y) {
         cell.classList.add("p2");
         cell.textContent = "P2";
-      }
+        }
 
       board.appendChild(cell);
     }
   }
 }
 
+function setMessage(text, persistent = false) {
+    messageEl.textContent = text;
+
+    if (persistent) {
+        clearMessageNextTurn = true;
+    }
+}
+
+function clearMessage() {
+    messageEl.textContent = "";
+    clearMessageNextTurn = false;
+}
+
+function updateTurnIndicator() {
+    const playerName = gameState.currentPlayer === "p1" ? "Player 1" : "Player 2";
+
+    turnEl.textContent = `${playerName}'s turn`
+}
+
 generateBombs();
 renderBoard();
+updateTurnIndicator();
