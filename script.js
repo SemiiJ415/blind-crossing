@@ -11,10 +11,22 @@ let gameState = {
     p2: { x: 7, y: 3 }
   },
   bombs: new Set(),
+
   p1Goal: null,
   p2Goal: null,
+
+  
   winner: null,
   gameOver: false,
+
+  matchScore: {
+    p1: 0,
+    p2: 0
+  },
+
+  roundWinner: null,
+  matchOver: false,
+
   message: "",
   clearMessageNextTurn: false
 };
@@ -45,6 +57,24 @@ function switchTurn() {
   updateTurnIndicator();
 }
 
+function resetRound() {
+  // reset player positions
+  gameState.players.p1 = { x: 0, y: 3 };
+  gameState.players.p2 = { x: 7, y: 3 };
+
+  // reset turn
+  gameState.currentPlayer = "p1";
+
+  // clear round state
+  gameState.gameOver = false;
+  gameState.winner = null;
+
+  clearMessage();
+  generateBombs();
+  renderBoard();
+  updateTurnIndicator();
+}
+
 // Movement rule
 function isValidMove(player, x, y) {
   const dx = x - player.x;
@@ -71,8 +101,9 @@ function movePlayer(x, y) {
 
     if (!isValidMove(player, x, y)) return;
 
-    if (clearMessageNextTurn) {
+    if (gameState.clearMessageNextTurn) {
     clearMessage();
+    gameState.clearMessageNextTurn = false;
   }
 
     player.x = x;
@@ -89,7 +120,7 @@ function movePlayer(x, y) {
 }
 
 function checkWin(playerKey) {
-  if (gameState.gameOver) return; //  prevent double triggers
+  if (gameState.gameOver || gameState.matchOver) return;
 
   const player = gameState.players[playerKey];
 
@@ -104,12 +135,30 @@ function checkWin(playerKey) {
 
   if (!hasWon) return;
 
-  // lock game immediately
   gameState.gameOver = true;
   gameState.winner = playerKey;
 
-  // single win message ONLY
-  setMessage(`🏆 ${playerKey.toUpperCase()} wins!`, true);
+  // add score
+  gameState.matchScore[playerKey]++;
+
+  // match winner
+  if (gameState.matchScore[playerKey] === 3) {
+    gameState.matchOver = true;
+
+    setMessage(
+      `🏆 ${playerKey.toUpperCase()} wins the match! Final score: ${gameState.matchScore.p1}-${gameState.matchScore.p2}`,
+      true
+    );
+
+    renderBoard();
+    return;
+  }
+
+  // round winner
+  setMessage(
+    `🏆 ${playerKey.toUpperCase()} wins the round! Score: ${gameState.matchScore.p1}-${gameState.matchScore.p2}`,
+    true
+  );
 
   renderBoard();
 }
@@ -180,6 +229,15 @@ const messageEl = document.getElementById("game-message");
 
 const turnEl = document.getElementById("turn-indicator")
 
+const nextRoundBtn = document.getElementById("next-round-btn")
+
+nextRoundBtn.addEventListener("click", () => {
+    if (gameState.matchOver) return;
+    if (gameState.gameOver) {
+        resetRound();
+    }
+})
+
 function renderBoard() {
   board.innerHTML = "";
     gameState.p1Goal = {
@@ -232,21 +290,24 @@ function renderBoard() {
         }
 
       board.appendChild(cell);
+
+        if (gameState.gameOver && !gameState. matchOver) {
+        nextRoundBtn.style.display = "block";
+        } else {
+        nextRoundBtn.style.display = "none";
+}
     }
   }
 }
 
 function setMessage(text, persistent = false) {
     messageEl.textContent = text;
-
-    if (persistent) {
-        clearMessageNextTurn = true;
-    }
+    gameState.clearMessageNextTurn = persistent;
 }
 
 function clearMessage() {
     messageEl.textContent = "";
-    clearMessageNextTurn = false;
+    // clearMessageNextTurn = false;
 }
 
 function updateTurnIndicator() {

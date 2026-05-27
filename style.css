@@ -53,3 +53,57 @@ body {
   background: gold;
   border: 2px solid white;
 }
+
+#next-round-btn {
+  display: none;
+
+  margin: 20px auto 0;
+  padding: 12px 24px;
+
+  background: linear-gradient(135deg, #6d5dfc, #8f7cff);
+  color: white;
+
+  border: none;
+  border-radius: 12px;
+
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 6px 18px rgba(109, 93, 252, 0.35);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+#next-round-btn:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 24px rgba(109, 93, 252, 0.45);
+}
+
+#next-round-btn:active {
+  transform: scale(0.97);
+}
+
+#next-round-btn {
+  animation: fadeInUp 0.25s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
