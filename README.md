@@ -26,3 +26,21 @@ Players race across a hidden-danger grid while avoiding randomly placed bombs. E
 - [ ] bomb detector
 - [ ] mobile responsive UI
 - [ ] React migration
+
+v0.4.1
+
+Added
+
+best-of-3 round tracking
+match score state
+round win detection
+match win detection
+Next Round button
+button visibility logic
+improved button styling
+
+Fixed
+
+duplicate win messages
+turn indicator reset after round
+message clearing bug after bomb collisions

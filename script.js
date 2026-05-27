@@ -75,6 +75,19 @@ function resetRound() {
   updateTurnIndicator();
 }
 
+function resetMatch() {
+  gameState.matchScore.p1 = 0;
+  gameState.matchScore.p2 = 0;
+
+  gameState.matchOver = false;
+  gameState.gameOver = false;
+  gameState.winner = null;
+
+  clearMessage();
+
+  resetRound();
+}
+
 // Movement rule
 function isValidMove(player, x, y) {
   const dx = x - player.x;
@@ -227,6 +240,10 @@ const board = document.getElementById("board");
 
 const messageEl = document.getElementById("game-message");
 
+const p1ScoreEl = document.getElementById("p1-score")
+const p2ScoreEl = document.getElementById("p2-score")
+
+
 const turnEl = document.getElementById("turn-indicator")
 
 const nextRoundBtn = document.getElementById("next-round-btn")
@@ -237,6 +254,12 @@ nextRoundBtn.addEventListener("click", () => {
         resetRound();
     }
 })
+
+const playAgainBtn = document.getElementById("play-again-btn")
+
+playAgainBtn.addEventListener("click", () => {
+  resetMatch();
+});
 
 function renderBoard() {
   board.innerHTML = "";
@@ -291,13 +314,21 @@ function renderBoard() {
 
       board.appendChild(cell);
 
-        if (gameState.gameOver && !gameState. matchOver) {
+        if (gameState.matchOver) {
+        nextRoundBtn.style.display = "none";
+        playAgainBtn.style.display = "block";
+
+        } else if (gameState.gameOver) {
         nextRoundBtn.style.display = "block";
+        playAgainBtn.style.display = "none";
+
         } else {
         nextRoundBtn.style.display = "none";
-}
+        playAgainBtn.style.display = "none";
+        }
     }
   }
+  updateScoreboard();
 }
 
 function setMessage(text, persistent = false) {
@@ -308,6 +339,12 @@ function setMessage(text, persistent = false) {
 function clearMessage() {
     messageEl.textContent = "";
     // clearMessageNextTurn = false;
+}
+
+function updateScoreboard() {
+    p1ScoreEl.textContent = gameState.matchScore.p1;
+    p2ScoreEl.textContent = gameState.matchScore.p2;
+
 }
 
 function updateTurnIndicator() {

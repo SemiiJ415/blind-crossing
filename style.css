@@ -54,7 +54,7 @@ body {
   border: 2px solid white;
 }
 
-#next-round-btn {
+#next-round-btn, #play-again-btn {
   display: none;
 
   margin: 20px auto 0;
@@ -106,4 +106,21 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+#scoreboard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+
+  margin: 12px 0 18px;
+
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+}
+
+.score-divider {
+  opacity: 0.6;
 }
