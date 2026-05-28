@@ -33,7 +33,7 @@ body {
 }
 
 .p2 {
-  background: #f44336;
+  background: hotpink;
   color: black;
   font-weight: bold;
 }
@@ -54,7 +54,7 @@ body {
   border: 2px solid white;
 }
 
-#next-round-btn, #play-again-btn {
+#next-round-btn, #play-again-btn, #detector-btn {
   display: none;
 
   margin: 20px auto 0;
@@ -123,4 +123,19 @@ body {
 
 .score-divider {
   opacity: 0.6;
+}
+
+#detector-status {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin: 10px 0;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+#detector-status div {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.1);
 }
